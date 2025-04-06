@@ -10,8 +10,8 @@ const io = socketIo(server);
 app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
-const startHour = 9;
-const endHour = 17;
+const startHour = 0;
+const endHour = 24;
 
 function isWithinOperatingHours() {
     const now = new Date();
