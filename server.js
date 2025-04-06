@@ -6,6 +6,7 @@ const socketIo = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+const activeUsers = new Set(); // Guardará nombres en uso
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -20,14 +21,36 @@ function isWithinOperatingHours() {
 }
 
 io.on('connection', (socket) => {
+    let currentUser = null;
+
     if (!isWithinOperatingHours()) {
         socket.emit('closed', 'El chat está cerrado en este momento.');
         socket.disconnect();
         return;
     }
 
+    socket.on('login', (username) => {
+        if (activeUsers.has(username)) {
+            socket.emit('login_error', 'Este nombre ya está en uso.');
+        } else {
+            currentUser = username;
+            activeUsers.add(username);
+            socket.emit('login_success');
+            console.log(`Usuario conectado: ${username}`);
+        }
+    });
+
     socket.on('message', (data) => {
-        io.emit('message', data);
+        if (currentUser) {
+            io.emit('message', { username: currentUser, message: data.message });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        if (currentUser) {
+            activeUsers.delete(currentUser);
+            console.log(`Usuario desconectado: ${currentUser}`);
+        }
     });
 });
 

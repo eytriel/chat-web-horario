@@ -6,18 +6,26 @@
     <style>
         body { font-family: Arial; margin: 30px; }
         #messages { margin-bottom: 10px; border: 1px solid #ccc; height: 200px; overflow-y: scroll; padding: 10px; }
-        #chat, #closed { margin-top: 20px; }
+        #chat, #closed, #login { margin-top: 20px; }
     </style>
 </head>
 <body>
 <h2>Chat en Tiempo Real</h2>
 <div id="messages"></div>
 
-<div id="chat">
-    <input id="input" autocomplete="off" />
+<!-- FORMULARIO DE LOGIN -->
+<div id="login">
+    <input id="username" placeholder="Tu nombre de usuario" />
+    <button onclick="login()">Entrar al chat</button>
+</div>
+
+<!-- CHAT -->
+<div id="chat" style="display:none;">
+    <input id="input" autocomplete="off" placeholder="Escribe un mensaje" />
     <button onclick="sendMessage()">Enviar</button>
 </div>
 
+<!-- CHAT CERRADO -->
 <div id="closed" style="display:none;">
     <strong>El chat está cerrado en este momento.</strong>
 </div>
@@ -25,23 +33,44 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
+    let username = '';
+
+    function login() {
+        const input = document.getElementById('username');
+        const name = input.value.trim();
+
+        if (name) {
+            socket.emit('login', name);
+        }
+    }
+
+    socket.on('login_success', () => {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('chat').style.display = 'block';
+        username = document.getElementById('username').value.trim();
+    });
+
+    socket.on('login_error', (msg) => {
+        alert(msg);
+    });
 
     socket.on('closed', (msg) => {
         document.getElementById('chat').style.display = 'none';
+        document.getElementById('login').style.display = 'none';
         document.getElementById('closed').style.display = 'block';
     });
 
-    socket.on('message', function(msg) {
+    socket.on('message', function(data) {
         const div = document.createElement('div');
-        div.textContent = msg;
+        div.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
         document.getElementById('messages').appendChild(div);
     });
 
     function sendMessage() {
         const input = document.getElementById('input');
         const message = input.value.trim();
-        if (message) {
-            socket.emit('message', message);
+        if (message && username) {
+            socket.emit('message', { message });
             input.value = '';
         }
     }
