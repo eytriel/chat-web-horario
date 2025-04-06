@@ -32,6 +32,10 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+    function scrollToBottom() {
+        const messagesContainer = document.getElementById('messages');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
     const socket = io();
     let username = '';
 
@@ -64,6 +68,7 @@
         const div = document.createElement('div');
         div.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
         document.getElementById('messages').appendChild(div);
+        scrollToBottom(); // 👈 Esto baja automáticamente
     });
 
     function sendMessage() {
