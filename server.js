@@ -113,6 +113,11 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Nuevo manejador para que el admin pueda solicitar la lista actual de usuarios
+    socket.on('get_user_list', () => {
+        socket.emit('user_list', Array.from(activeUsers));
+    });
+
     socket.on('message', (data) => {
         if (currentUser) {
             const newMessage = new Message({
@@ -138,6 +143,7 @@ io.on('connection', (socket) => {
         }
     });
 });
+
 
 server.listen(PORT, () => {
     console.log(`Servidor corriendo en puerto ${PORT}`);

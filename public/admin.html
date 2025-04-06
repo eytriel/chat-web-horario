@@ -5,7 +5,8 @@
   <title>Panel de Administración</title>
   <style>
     body { font-family: Arial; margin: 30px; }
-    #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+    /* Eliminamos el chat en vivo */
+    #userList, form { margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -17,8 +18,6 @@
 </div>
 
 <div id="panel" style="display:none;">
-  <h3>Mensajes en tiempo real</h3>
-  <div id="messages"></div>
   <h3>Usuarios conectados</h3>
   <ul id="userList"></ul>
   <h3>Configuración de horarios</h3>
@@ -46,8 +45,12 @@
       loadCurrentSchedule();
       document.getElementById('login').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
-      // Solicitar el historial de mensajes al servidor
-      socket.emit('get_history');
+      // Solicitar la lista de usuarios conectados al iniciar sesión
+      socket.emit('get_user_list');
+      // Actualizar la lista cada 10 segundos (opcional)
+      setInterval(() => {
+        socket.emit('get_user_list');
+      }, 10000);
     } else {
       alert("Contraseña incorrecta.");
     }
@@ -86,20 +89,6 @@
               console.error('Error actualizando:', err);
             });
   }
-
-  // Escuchar mensajes en tiempo real
-  socket.on('message', function(data) {
-    const div = document.createElement('div');
-    div.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
-    document.getElementById('messages').appendChild(div);
-  });
-
-  // Escuchar el historial (mensajes históricos)
-  socket.on('history', function(data) {
-    const div = document.createElement('div');
-    div.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
-    document.getElementById('messages').appendChild(div);
-  });
 
   // Escuchar la lista de usuarios conectados y actualizar el panel
   socket.on('user_list', function(users) {
