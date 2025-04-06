@@ -99,8 +99,8 @@ io.on('connection', (socket) => {
             activeUsers.add(username);
             socket.emit('login_success');
 
-            // Obtener los mensajes anteriores desde MongoDB
-            Message.find().sort({ timestamp: 1 }).limit(50)
+            // Obtener los mensajes anteriores desde MongoDB, ahora con un límite mayor (200)
+            Message.find().sort({ timestamp: 1 }).limit(200)
                 .then(messages => {
                     messages.forEach(msg => {
                         socket.emit('message', { username: msg.username, message: msg.message });
