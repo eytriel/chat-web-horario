@@ -34,13 +34,18 @@ io.on('connection', (socket) => {
     }
 
     socket.on('login', (username) => {
+        if (username.length > 15) {
+            socket.emit('login_error', 'El nombre de usuario no puede tener más de 15 caracteres.');
+            return;
+        }
+
         if (activeUsers.has(username)) {
             socket.emit('login_error', 'Este nombre ya está en uso.');
         } else {
             currentUser = username;
             activeUsers.add(username);
             socket.emit('login_success');
-            broadcastUserList(); // <-- Nuevo
+            broadcastUserList();
             console.log(`Usuario conectado: ${username}`);
         }
     });
