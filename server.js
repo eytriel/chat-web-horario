@@ -2,13 +2,26 @@ const mongoose = require('mongoose');
 
 // Conectar a MongoDB
 mongoose.connect('TU_CADENA_DE_CONEXION', { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('Conectado a MongoDB'))
+    .then(() => {
+        console.log('Conectado a MongoDB');
+        clearMessagesWhenClosed(); // Llamada para empezar a revisar el horario
+    })
     .catch(err => console.error('Error al conectar con MongoDB:', err));
 
 const express = require('express');
 const http = require('http');
 const path = require('path');
 const socketIo = require('socket.io');
+
+function clearMessagesWhenClosed() {
+    setInterval(() => {
+        if (!isWithinOperatingHours()) {
+            Message.deleteMany({})
+                .then(() => console.log('Historial de mensajes borrado por cierre de horario'))
+                .catch(err => console.error('Error al borrar los mensajes:', err));
+        }
+    }, 60000); // Revisa cada 60 segundos si el chat está cerrado
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -25,9 +38,14 @@ const PORT = process.env.PORT || 3000;
 const startHour = 0;
 const endHour = 24;
 
+const moment = require('moment-timezone');
+
 function isWithinOperatingHours() {
-    const now = new Date();
-    const currentHour = now.getHours();
+    const now = moment().tz('America/Tijuana'); // Ajusta a la zona horaria de Buenos Aires (GMT-3)
+    const startHour = 7; // Hora de inicio (9 AM)
+    const endHour = 2; // Hora de cierre (6 PM)
+
+    const currentHour = now.hours();  // Obtiene la hora en la zona horaria específica
     return currentHour >= startHour && currentHour < endHour;
 }
 

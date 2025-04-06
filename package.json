@@ -11,6 +11,9 @@
   "description": "",
   "dependencies": {
     "express": "^5.1.0",
+    "moment-timezone": "^0.5.48",
+    "mongodb": "^6.15.0",
+    "mongoose": "^8.13.2",
     "socket.io": "^4.8.1"
   }
 }
