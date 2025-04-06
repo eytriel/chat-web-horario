@@ -6,7 +6,11 @@ const socketIo = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
-const activeUsers = new Set(); // Guardará nombres en uso
+const activeUsers = new Set();
+
+function broadcastUserList() {
+    io.emit('user_list', Array.from(activeUsers));
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -36,6 +40,7 @@ io.on('connection', (socket) => {
             currentUser = username;
             activeUsers.add(username);
             socket.emit('login_success');
+            broadcastUserList(); // <-- Nuevo
             console.log(`Usuario conectado: ${username}`);
         }
     });
@@ -49,6 +54,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         if (currentUser) {
             activeUsers.delete(currentUser);
+            broadcastUserList(); // <-- Nuevo
             console.log(`Usuario desconectado: ${currentUser}`);
         }
     });

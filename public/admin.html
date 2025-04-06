@@ -19,6 +19,8 @@
 <div id="panel" style="display:none;">
   <h3>Mensajes en tiempo real</h3>
   <div id="messages"></div>
+  <h3>Usuarios conectados</h3>
+  <ul id="userList"></ul>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -41,6 +43,15 @@
     const div = document.createElement('div');
     div.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
     document.getElementById('messages').appendChild(div);
+    socket.on('user_list', function(users) {
+      const ul = document.getElementById('userList');
+      ul.innerHTML = '';
+      users.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = user;
+        ul.appendChild(li);
+      });
+    });
   });
 </script>
 </body>
