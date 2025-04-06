@@ -1,3 +1,10 @@
+const mongoose = require('mongoose');
+
+// Conectar a MongoDB
+mongoose.connect('TU_CADENA_DE_CONEXION', { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Conectado a MongoDB'))
+    .catch(err => console.error('Error al conectar con MongoDB:', err));
+
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -45,14 +52,37 @@ io.on('connection', (socket) => {
             currentUser = username;
             activeUsers.add(username);
             socket.emit('login_success');
+
+            // Obtener los mensajes anteriores desde MongoDB
+            Message.find().sort({ timestamp: 1 }).limit(50)  // Limita a los últimos 50 mensajes
+                .then(messages => {
+                    messages.forEach(msg => {
+                        socket.emit('message', { username: msg.username, message: msg.message });
+                    });
+                })
+                .catch(err => console.error('Error al obtener los mensajes:', err));
+
             broadcastUserList();
             console.log(`Usuario conectado: ${username}`);
         }
     });
 
+    const Message = require('./models/message');  // Agrega esta línea al principio
+
     socket.on('message', (data) => {
         if (currentUser) {
-            io.emit('message', { username: currentUser, message: data.message });
+            const newMessage = new Message({
+                username: currentUser,
+                message: data.message,
+            });
+
+            newMessage.save()
+                .then(() => {
+                    io.emit('message', { username: currentUser, message: data.message });
+                })
+                .catch(err => {
+                    console.error('Error al guardar el mensaje:', err);
+                });
         }
     });
 
