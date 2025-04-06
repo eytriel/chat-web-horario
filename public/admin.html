@@ -21,17 +21,30 @@
   <div id="messages"></div>
   <h3>Usuarios conectados</h3>
   <ul id="userList"></ul>
+  <h3>Configuración de horarios</h3>
+  <form onsubmit="updateSchedule(event)">
+    <label for="startHour">Hora de apertura (0-23): </label>
+    <input type="number" id="startHour" min="0" max="23" required />
+    <br /><br />
+    <label for="endHour">Hora de cierre (0-23): </label>
+    <input type="number" id="endHour" min="0" max="23" required />
+    <br /><br />
+    <button type="submit">Guardar horarios</button>
+  </form>
+  <p id="configStatus" style="color:green;"></p>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const socket = io();
-  const ADMIN_PASSWORD = 'admin000'; // <- Puedes cambiar esto
+  const ADMIN_PASSWORD = 'admin000'; // Puedes cambiar esto
 
+  // Función para iniciar sesión como administrador
   function adminLogin() {
     const input = document.getElementById('adminPass');
     const pass = input.value.trim();
     if (pass === ADMIN_PASSWORD) {
+      loadCurrentSchedule();
       document.getElementById('login').style.display = 'none';
       document.getElementById('panel').style.display = 'block';
     } else {
@@ -39,18 +52,55 @@
     }
   }
 
+  // Función para cargar la configuración de horarios actual desde el servidor
+  function loadCurrentSchedule() {
+    fetch('/api/settings')
+            .then(res => res.json())
+            .then(data => {
+              document.getElementById('startHour').value = data.startHour;
+              document.getElementById('endHour').value = data.endHour;
+            })
+            .catch(err => {
+              console.error('Error al cargar horarios:', err);
+            });
+  }
+
+  // Función para actualizar los horarios en el servidor
+  function updateSchedule(event) {
+    event.preventDefault();
+    const startHour = parseInt(document.getElementById('startHour').value);
+    const endHour = parseInt(document.getElementById('endHour').value);
+
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ startHour, endHour })
+    })
+            .then(res => res.json())
+            .then(data => {
+              document.getElementById('configStatus').textContent = 'Horarios actualizados correctamente';
+            })
+            .catch(err => {
+              document.getElementById('configStatus').textContent = 'Error al actualizar horarios';
+              console.error('Error actualizando:', err);
+            });
+  }
+
+  // Escuchar mensajes entrantes y agregarlos al panel
   socket.on('message', function(data) {
     const div = document.createElement('div');
     div.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
     document.getElementById('messages').appendChild(div);
-    socket.on('user_list', function(users) {
-      const ul = document.getElementById('userList');
-      ul.innerHTML = '';
-      users.forEach(user => {
-        const li = document.createElement('li');
-        li.textContent = user;
-        ul.appendChild(li);
-      });
+  });
+
+  // Escuchar la lista de usuarios conectados y actualizar el panel
+  socket.on('user_list', function(users) {
+    const ul = document.getElementById('userList');
+    ul.innerHTML = '';
+    users.forEach(user => {
+      const li = document.createElement('li');
+      li.textContent = user;
+      ul.appendChild(li);
     });
   });
 </script>
