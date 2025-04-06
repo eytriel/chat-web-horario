@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Conectar a MongoDB
-mongoose.connect('mongodb+srv://Venator:<db_password>@cluster0.ahup79z.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb+srv://Venator:Az302717@cluster0.ahup79z.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log('Conectado a MongoDB');
         clearMessagesWhenClosed(); // Llamada para empezar a revisar el horario
