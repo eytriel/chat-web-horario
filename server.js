@@ -43,7 +43,7 @@ const moment = require('moment-timezone');
 function isWithinOperatingHours() {
     const now = moment().tz('America/Tijuana'); // Ajusta a la zona horaria de Buenos Aires (GMT-3)
     const startHour = 7; // Hora de inicio (9 AM)
-    const endHour = 2; // Hora de cierre (6 PM)
+    const endHour = 14; // Hora de cierre (6 PM)
 
     const currentHour = now.hours();  // Obtiene la hora en la zona horaria específica
     return currentHour >= startHour && currentHour < endHour;
